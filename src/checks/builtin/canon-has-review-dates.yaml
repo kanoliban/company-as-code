@@ -1,0 +1,7 @@
+id: canon-has-review-dates
+description: Canon documents must have review dates to prevent doctrine from becoming stale
+severity: warning
+scope: "canon/*.md"
+require_frontmatter:
+  - review_by
+  - status

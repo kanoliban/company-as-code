@@ -1,0 +1,15 @@
+modules:
+  - id: product
+    name: Product
+    lead: codex
+    mission: Define product scope, schema, and CLI interface
+
+  - id: engineering
+    name: Engineering
+    lead: claude
+    mission: Implement CLI commands, rule engine, and tests
+
+  - id: operations
+    name: Operations
+    lead: TBD
+    mission: Dogfooding, deployment, and gateway integration

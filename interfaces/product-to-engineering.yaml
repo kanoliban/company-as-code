@@ -1,0 +1,21 @@
+id: product-to-engineering
+between: [product, engineering]
+inputs:
+  - name: design-docs
+    format: markdown
+    cadence: per-feature
+  - name: schema-specs
+    format: yaml
+    cadence: per-version
+outputs:
+  - name: implementation
+    format: source-code
+    cadence: per-feature
+  - name: test-results
+    format: json
+    cadence: per-build
+escalation:
+  owner: product
+  triggers:
+    - Implementation blocked for >48h
+    - Schema change requires design doc amendment

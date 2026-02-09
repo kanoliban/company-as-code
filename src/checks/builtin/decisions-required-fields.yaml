@@ -1,0 +1,10 @@
+id: decisions-required-fields
+description: Every decision record must have context, alternatives, and consequences
+severity: error
+scope: "decisions/*.md"
+require_frontmatter:
+  - context
+  - decision
+  - alternatives
+  - consequences
+  - review_by

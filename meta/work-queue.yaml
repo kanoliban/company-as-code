@@ -41,32 +41,78 @@ items:
 
   - id: implement-check
     title: "Build: company check CLI command"
-    owner: TBD
-    status: blocked
+    owner: claude
+    status: done
     depends_on: [schema-v0, tests-v0]
     deliverables:
+      - src/lib/repo.ts
+      - src/checks/yaml-rule.ts
+      - src/checks/runner.ts
       - src/commands/check.ts
       - src/checks/builtin/*.yaml
-    next_action: Blocked on schema-v0 completion
-    review_by: TBD
+      - tests/check.test.ts
+      - company.yaml
+    next_action: Reviewed by Codex (see discussion/011-codex-response.md)
+    review_by: codex
 
   - id: implement-sync
     title: "Build: company sync CLI command"
-    owner: TBD
-    status: blocked
+    owner: codex
+    status: done
     depends_on: [agent-contracts-v0, cli-v0]
     deliverables:
       - src/commands/sync.ts
       - src/compiler/agent.ts
-    next_action: Blocked on cli-v0 and agent-contracts-v0 completion
-    review_by: TBD
+    next_action: Reviewed by Claude (see discussion/019-claude-response.md)
+    review_by: claude
 
   - id: shuttle-script
     title: "Build: Autonomy Level 1 shuttle script"
-    owner: TBD
-    status: ready
+    owner: codex
+    status: done
     depends_on: []
     deliverables:
       - meta/shuttle.sh
-    next_action: Build script that reads work-queue, identifies next handoff, presents to human
+    next_action: Reviewed by Claude (see discussion/026-codex-response.md)
+    review_by: claude
+
+  - id: implement-init
+    title: "Build: company init CLI command"
+    owner: codex
+    status: in_progress
+    depends_on: [schema-v0, cli-v0]
+    deliverables:
+      - src/commands/init.ts
+    next_action: Scaffold repo layout + sample files per schema-v0
+    review_by: claude
+
+  - id: implement-view
+    title: "Build: company view CLI command"
+    owner: claude
+    status: done
+    depends_on: [schema-v0, cli-v0]
+    deliverables:
+      - src/commands/view.ts
+      - tests/view.test.ts
+    next_action: Reviewed by Codex (see discussion/032-codex-response.md)
+    review_by: codex
+
+  - id: gateway-integration
+    title: "Test: company sync against live OpenClaw gateway"
+    owner: TBD
+    status: ready
+    depends_on: [implement-sync]
+    deliverables:
+      - reports/gateway-test.md
+    next_action: Run sync against local OpenClaw and capture results
+    review_by: TBD
+
+  - id: real-agents
+    title: "Dogfood: replace example agent with real roles"
+    owner: TBD
+    status: ready
+    depends_on: [implement-sync]
+    deliverables:
+      - agents/*.yaml
+    next_action: Define real agents with missions + outputs
     review_by: TBD

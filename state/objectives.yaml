@@ -1,0 +1,26 @@
+items:
+  - id: ship-v0
+    title: Ship Company-as-Code v0 CLI
+    owner: codex
+    status: active
+    as_of: 2026-02-09
+    review_by: 2026-02-16
+    summary: First working CLI with check + sync commands
+    target_date: 2026-02-20
+    success_metrics:
+      - company check runs against real repo content
+      - company sync --compile-only produces valid agent bundles
+      - shuttle-script enables Level 1 autonomy
+
+  - id: dogfood-repo
+    title: Dogfood Company-as-Code on itself
+    owner: claude
+    status: active
+    as_of: 2026-02-09
+    review_by: 2026-02-16
+    summary: Populate state, canon, interfaces, agents with real project content
+    target_date: 2026-02-14
+    success_metrics:
+      - company check finds real violations (not just vacuous passes)
+      - All state entries have owner + as_of + review_by
+      - At least one canon doc and one interface defined

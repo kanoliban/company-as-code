@@ -1,0 +1,10 @@
+id: no-orphan-artifacts
+description: Artifact metadata files must have owner and status
+severity: warning
+scope: "artifacts/**/artifact.yaml"
+require_fields:
+  - id
+  - title
+  - owner
+  - status
+  - as_of

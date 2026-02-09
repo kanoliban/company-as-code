@@ -1,0 +1,6 @@
+id: work-queue-integrity
+description: Work queue must have required fields for task tracking
+severity: error
+scope: "meta/work-queue.yaml"
+require_fields:
+  - items

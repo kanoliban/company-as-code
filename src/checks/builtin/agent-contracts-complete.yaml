@@ -1,0 +1,14 @@
+id: agent-contracts-complete
+description: Every agent contract must declare mission, inputs, outputs, and boundaries
+severity: error
+scope: "agents/*.yaml"
+require_fields:
+  - id
+  - name
+  - mission
+  - inputs
+  - outputs
+  - writes
+  - forbidden
+  - escalation
+  - heartbeat

@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Contract",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "role",
+    "level",
+    "mission",
+    "inputs",
+    "outputs",
+    "writes",
+    "forbidden",
+    "escalation",
+    "heartbeat"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "name": { "type": "string" },
+    "role": { "type": "string" },
+    "level": { "enum": ["intern", "specialist", "lead"] },
+    "mission": { "type": "string" },
+    "personality": {
+      "type": "object",
+      "properties": {
+        "voice": { "type": "string" },
+        "strengths": { "type": "array", "items": { "type": "string" } },
+        "values": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "authoritative": { "type": "array", "items": { "type": "string" } },
+        "reads": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "cadence", "destination"],
+        "properties": {
+          "type": { "type": "string" },
+          "cadence": { "type": "string" },
+          "destination": { "type": "string" }
+        }
+      }
+    },
+    "writes": {
+      "type": "object",
+      "required": ["allowed", "forbidden"],
+      "properties": {
+        "allowed": { "type": "array", "items": { "type": "string" } },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "forbidden": { "type": "array", "items": { "type": "string" } },
+    "escalation": {
+      "type": "object",
+      "required": ["triggers", "to"],
+      "properties": {
+        "triggers": { "type": "array", "items": { "type": "string" } },
+        "to": { "type": "string" }
+      }
+    },
+    "heartbeat": {
+      "type": "object",
+      "required": ["schedule", "checklist"],
+      "properties": {
+        "schedule": { "type": "string" },
+        "session_type": { "enum": ["isolated", "main"] },
+        "checklist": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "default": { "type": "string" },
+        "thinking": { "type": "string" },
+        "expensive_tasks": { "type": "string" }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "properties": {
+        "allowed": { "type": "array", "items": { "type": "string" } },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

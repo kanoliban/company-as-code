@@ -299,7 +299,8 @@ When any of these occur, escalate to **{{escalation.to}}**:
       - agents.files.set(agentId, "HEARTBEAT.md", compiled_heartbeat)
    e. Sync cron:
       - cron.list() → find existing heartbeat cron
-      - If schedule changed: cron.remove(old) + create new (method name for add/upsert to confirm against gateway API)
+      - If exists: cron.update (patch schedule + message)
+      - If not exists: cron.add
    f. Sync model/tools via config.patch if changed
 4. Report: "Synced N agents. M files updated. K crons modified."
 ```

@@ -1,0 +1,10 @@
+id: interfaces-balanced
+description: Every interface must have both inputs and outputs defined
+severity: error
+scope: "interfaces/*.yaml"
+require_fields:
+  - id
+  - between
+  - inputs
+  - outputs
+  - escalation

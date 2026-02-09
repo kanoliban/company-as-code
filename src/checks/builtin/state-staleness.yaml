@@ -1,0 +1,12 @@
+id: state-staleness
+description: State entries must be refreshed within their review window
+severity: error
+scope: "state/*.yaml"
+each_entry:
+  require_fields:
+    - owner
+    - as_of
+    - review_by
+  assert:
+    - field: review_by
+      condition: not_past

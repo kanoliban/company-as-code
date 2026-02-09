@@ -1,0 +1,34 @@
+items:
+  - id: implement-check
+    title: Build company check CLI command
+    owner: claude
+    status: shipped
+    as_of: 2026-02-09
+    review_by: 2026-02-16
+    summary: 7 builtin rules, 19 tests, pretty + JSON output
+
+  - id: implement-sync
+    title: Build company sync CLI command
+    owner: codex
+    status: shipped
+    as_of: 2026-02-09
+    review_by: 2026-02-16
+    summary: Compiler + gateway client + compile-only mode, 18 tests
+
+  - id: shuttle-script
+    title: Autonomy Level 1 shuttle script
+    owner: codex
+    status: in_progress
+    as_of: 2026-02-09
+    review_by: 2026-02-14
+    summary: Reads work queue, identifies next handoff, generates relay prompt
+
+  - id: dogfood-v0
+    title: Dogfood repo with real content
+    owner: claude
+    status: in_progress
+    as_of: 2026-02-09
+    review_by: 2026-02-14
+    summary: Populate state, canon, interfaces so checks run against real data
+    depends_on:
+      - implement-check

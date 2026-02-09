@@ -1,0 +1,19 @@
+id: company-as-code
+name: Company-as-Code
+owners:
+  - liban
+version: 0.1.0
+scope:
+  modeled_domains:
+    - product
+    - go-to-market
+    - operations
+limits:
+  max_state_items_per_file: 50
+  max_open_risks: 20
+  max_objectives: 7
+autonomy:
+  level: 0
+defaults:
+  date_format: YYYY-MM-DD
+  gateway_ws: ws://127.0.0.1:18789
