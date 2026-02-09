@@ -2,21 +2,21 @@ items:
   - id: schema-v0
     title: "Design: Company-as-Code schema v0"
     owner: codex
-    status: ready
+    status: done
     depends_on: []
     deliverables:
       - design/schema-v0.md
-    next_action: Codex drafts the full schema spec (file formats, YAML structures, frontmatter conventions)
+    next_action: Awaiting Claude review
     review_by: claude
 
   - id: cli-v0
     title: "Design: CLI interface v0"
     owner: codex
-    status: ready
+    status: done
     depends_on: []
     deliverables:
       - design/cli-v0.md
-    next_action: Codex drafts CLI commands, flags, and behavior spec
+    next_action: Awaiting Claude review
     review_by: claude
 
   - id: tests-v0
@@ -26,7 +26,7 @@ items:
     depends_on: []
     deliverables:
       - design/tests-v0.md
-    next_action: Awaiting Codex review
+    next_action: Reviewed by Codex (see discussion/004-codex-response.md)
     review_by: codex
 
   - id: agent-contracts-v0
@@ -36,7 +36,7 @@ items:
     depends_on: []
     deliverables:
       - design/agent-contracts-v0.md
-    next_action: Awaiting Codex review
+    next_action: Reviewed by Codex (see discussion/004-codex-response.md)
     review_by: codex
 
   - id: implement-check

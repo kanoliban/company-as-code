@@ -105,6 +105,8 @@ For v0, keep the operator set minimal:
 | `assert.condition` | Field values | `not_empty`, `not_past`, `matches:<regex>`, `one_of:<list>` |
 | `assert.references` | Field values | Value must be a valid path in the repo |
 
+**Date format (v0):** `YYYY-MM-DD` (ISO date). `not_past` compares against local date.
+
 This covers ~80% of organizational checks. The TS escape hatch handles the rest.
 
 ## TypeScript Escape Hatch
@@ -113,7 +115,7 @@ This covers ~80% of organizational checks. The TS escape hatch handles the rest.
 // checks/custom-claim-evidence.ts
 import { Check, CheckResult } from '@company-as-code/checks';
 
-export default: Check = {
+const check: Check = {
   id: 'custom-claim-evidence',
   description: 'External claims in canon must link to evidence',
   severity: 'warning',
@@ -140,6 +142,8 @@ export default: Check = {
     return results;
   }
 };
+
+export default check;
 ```
 
 ## CLI Interface
@@ -215,6 +219,8 @@ company check
 | `interfaces-balanced` | `interfaces/*.yaml` | Both inputs and outputs defined |
 | `work-queue-integrity` | `meta/work-queue.yaml` | Done items have discussion update + approval |
 | `no-orphan-artifacts` | `artifacts/*` | Every artifact has metadata (owner, as_of, status) |
+
+**Note:** `work-queue-integrity` assumes each `discussion/NNN-*-update.md` includes frontmatter with `work_queue_item`, `files_changed`, and `status`.
 
 ## Implementation Notes
 

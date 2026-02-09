@@ -105,7 +105,7 @@ tools:
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["id", "name", "role", "level", "mission", "inputs", "outputs", "forbidden", "escalation", "heartbeat"],
+  "required": ["id", "name", "role", "level", "mission", "inputs", "outputs", "writes", "forbidden", "escalation", "heartbeat"],
   "properties": {
     "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
     "name": { "type": "string" },
@@ -141,6 +141,7 @@ tools:
     },
     "writes": {
       "type": "object",
+      "required": ["allowed", "forbidden"],
       "properties": {
         "allowed": { "type": "array", "items": { "type": "string" } },
         "forbidden": { "type": "array", "items": { "type": "string" } }
@@ -278,7 +279,7 @@ When any of these occur, escalate to **{{escalation.to}}**:
   "name": "{{id}}-heartbeat",
   "cron": "{{heartbeat.schedule}}",
   "session": "{{heartbeat.session_type}}",
-  "sessionKey": "agent:{{id}}:main",
+  "sessionKey": "agent:{{id}}:{{heartbeat.session_type}}",
   "message": "You are {{name}}, the {{role}}. Follow your HEARTBEAT.md checklist."
 }
 ```
@@ -298,7 +299,7 @@ When any of these occur, escalate to **{{escalation.to}}**:
       - agents.files.set(agentId, "HEARTBEAT.md", compiled_heartbeat)
    e. Sync cron:
       - cron.list() → find existing heartbeat cron
-      - If schedule changed: cron.remove(old) + cron.add(new)
+      - If schedule changed: cron.remove(old) + create new (method name for add/upsert to confirm against gateway API)
    f. Sync model/tools via config.patch if changed
 4. Report: "Synced N agents. M files updated. K crons modified."
 ```
@@ -327,7 +328,7 @@ Beyond schema validation, agent contracts are checked against the rest of the co
 | Check | What It Validates |
 |-------|------------------|
 | `agent-inputs-exist` | Every path in `inputs.authoritative` and `inputs.reads` exists in the repo |
-| `agent-writes-dont-overlap` | No two agents have overlapping `writes.allowed` paths (prevents conflict) |
+| `agent-writes-dont-overlap` | No two agents have overlapping `writes.allowed` paths (prevents conflict), except under shared paths like `reports/shared/**` |
 | `agent-escalation-valid` | `escalation.to` references an existing agent id |
 | `agent-outputs-have-destination` | Every output destination directory exists |
 | `agent-forbidden-consistent` | `writes.forbidden` doesn't contradict `writes.allowed` |
