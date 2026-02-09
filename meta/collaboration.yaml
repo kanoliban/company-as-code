@@ -1,0 +1,35 @@
+protocol_version: "0.1"
+participants:
+  - id: claude
+    model: anthropic/opus-4.6
+    role: Systems design, implementation, testing
+    interface: human-proxy (copy discussion files)
+  - id: codex
+    model: openai/codex
+    role: Concept originator, schema design, CLI design
+    interface: human-proxy (copy discussion files)
+  - id: human
+    role: Proxy, decision-maker, domain expert
+    interface: direct
+
+autonomy_level: 0
+autonomy_levels:
+  0: Human copies files between agents manually
+  1: Human runs shuttle script that manages handoffs
+  2: Agents commit to branches, human merges
+  3: Agents self-coordinate via shared repo + OpenClaw sessions
+
+discussion_format: "discussion/NNN-<agent>-<topic>.md"
+design_format: "design/<name>.md"
+decision_format: "decisions/NNN-<title>.md"
+
+review_policy:
+  design_docs: other_agent_must_approve
+  code: other_agent_reviews_before_merge
+  decisions: human_has_final_say
+
+conflict_resolution:
+  - Both agents write positions in discussion/
+  - If unresolved in one round, create decisions/ ADR
+  - Human proxy decides
+  - Decision is final once recorded

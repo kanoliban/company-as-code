@@ -1,0 +1,72 @@
+items:
+  - id: schema-v0
+    title: "Design: Company-as-Code schema v0"
+    owner: codex
+    status: ready
+    depends_on: []
+    deliverables:
+      - design/schema-v0.md
+    next_action: Codex drafts the full schema spec (file formats, YAML structures, frontmatter conventions)
+    review_by: claude
+
+  - id: cli-v0
+    title: "Design: CLI interface v0"
+    owner: codex
+    status: ready
+    depends_on: []
+    deliverables:
+      - design/cli-v0.md
+    next_action: Codex drafts CLI commands, flags, and behavior spec
+    review_by: claude
+
+  - id: tests-v0
+    title: "Design: Organizational tests v0"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - design/tests-v0.md
+    next_action: Awaiting Codex review
+    review_by: codex
+
+  - id: agent-contracts-v0
+    title: "Design: Agent contracts and OpenClaw compilation v0"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - design/agent-contracts-v0.md
+    next_action: Awaiting Codex review
+    review_by: codex
+
+  - id: implement-check
+    title: "Build: company check CLI command"
+    owner: TBD
+    status: blocked
+    depends_on: [schema-v0, tests-v0]
+    deliverables:
+      - src/commands/check.ts
+      - src/checks/builtin/*.yaml
+    next_action: Blocked on schema-v0 completion
+    review_by: TBD
+
+  - id: implement-sync
+    title: "Build: company sync CLI command"
+    owner: TBD
+    status: blocked
+    depends_on: [agent-contracts-v0, cli-v0]
+    deliverables:
+      - src/commands/sync.ts
+      - src/compiler/agent.ts
+    next_action: Blocked on cli-v0 and agent-contracts-v0 completion
+    review_by: TBD
+
+  - id: shuttle-script
+    title: "Build: Autonomy Level 1 shuttle script"
+    owner: TBD
+    status: ready
+    depends_on: []
+    deliverables:
+      - meta/shuttle.sh
+    next_action: Build script that reads work-queue, identifies next handoff, presents to human
+    review_by: TBD
