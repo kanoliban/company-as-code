@@ -1,0 +1,8 @@
+id: discussion-protocol
+description: Discussion files must have from, to, and status in frontmatter
+severity: warning
+scope: discussion/*-response.md
+require_frontmatter:
+  - from
+  - to
+  - status

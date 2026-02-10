@@ -13,7 +13,7 @@ limits:
   max_open_risks: 20
   max_objectives: 7
 autonomy:
-  level: 0
+  level: 3
 defaults:
   date_format: YYYY-MM-DD
   gateway_ws: ws://127.0.0.1:18789

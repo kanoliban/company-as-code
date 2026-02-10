@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Repo } from "../src/lib/repo";
 import type { YamlRule } from "../src/checks/yaml-rule";
 import { runYamlRule } from "../src/checks/yaml-rule";
-import { runChecks, formatPretty, formatJson } from "../src/checks/runner";
+import { listChecks, runChecks, formatPretty, formatJson } from "../src/checks/runner";
 
 function createMockRepo(files: Record<string, string>): Repo {
   return {
@@ -75,6 +75,21 @@ describe("yaml-rule engine", () => {
       expect(result.violations).toHaveLength(1);
       expect(result.violations[0].message).toContain("mission");
       expect(result.violations[0].message).toContain("inputs");
+    });
+
+    it("supports nested field paths", async () => {
+      const repo = createMockRepo({
+        "agents/nested.yaml": "id: nested\nname: Nested\nmission: ok\ninputs: []\noutputs: []\n",
+      });
+      const rule: YamlRule = {
+        id: "test-nested",
+        severity: "error",
+        scope: "agents/*.yaml",
+        require_fields: ["tools.profile"],
+      };
+      const result = await runYamlRule(repo, rule);
+      expect(result.status).toBe("fail");
+      expect(result.violations[0].message).toContain("tools.profile");
     });
   });
 
@@ -202,10 +217,10 @@ describe("runner", () => {
     it("runs all builtin rules and returns summary", async () => {
       const repo = createMockRepo({});
       const summary = await runChecks({ repo });
-      expect(summary.passed).toBe(7);
+      expect(summary.passed).toBe(8);
       expect(summary.failed).toBe(0);
       expect(summary.warnings).toBe(0);
-      expect(summary.results).toHaveLength(7);
+      expect(summary.results).toHaveLength(8);
     });
 
     it("filters by id", async () => {
@@ -248,6 +263,142 @@ describe("runner", () => {
       const summary = await runChecks({ repo, filterId: "canon-has-review-dates" });
       expect(summary.warnings).toBe(1);
       expect(summary.failed).toBe(0);
+    });
+  });
+
+  describe("custom checks", () => {
+    it("loads and runs a user-defined rule from checks/", async () => {
+      const repo = createMockRepo({
+        "checks/custom-meta.yaml": [
+          "id: custom-meta",
+          "severity: warning",
+          "scope: state/*.yaml",
+          "require_fields: [id, title]",
+        ].join("\n"),
+        "state/things.yaml": "id: thing1\ntitle: A thing\n",
+      });
+      const summary = await runChecks({ repo, filterId: "custom-meta" });
+      expect(summary.results).toHaveLength(1);
+      expect(summary.results[0].id).toBe("custom-meta");
+      expect(summary.results[0].status).toBe("pass");
+    });
+
+    it("custom rule overrides builtin with same id", async () => {
+      const repo = createMockRepo({
+        "checks/work-queue-integrity.yaml": [
+          "id: work-queue-integrity",
+          "severity: warning",
+          "scope: meta/work-queue.yaml",
+          "require_fields: [items, version]",
+        ].join("\n"),
+        "meta/work-queue.yaml": "items:\n  - id: t1\n",
+      });
+      const summary = await runChecks({ repo, filterId: "work-queue-integrity" });
+      expect(summary.results).toHaveLength(1);
+      expect(summary.results[0].severity).toBe("warning");
+      expect(summary.results[0].status).toBe("fail");
+      expect(summary.results[0].violations[0].message).toContain("version");
+    });
+
+    it("reports malformed rule file without crashing", async () => {
+      const repo = createMockRepo({
+        "checks/broken.yaml": "this is not valid yaml: [",
+      });
+      const summary = await runChecks({ repo });
+      const loadError = summary.results.find((r) => r.id.startsWith("load-error:"));
+      expect(loadError).toBeDefined();
+      expect(loadError!.status).toBe("fail");
+      expect(loadError!.severity).toBe("error");
+    });
+
+    it("rejects rule missing required fields", async () => {
+      const repo = createMockRepo({
+        "checks/no-scope.yaml": "id: no-scope\nseverity: error\n",
+      });
+      const summary = await runChecks({ repo });
+      const loadError = summary.results.find((r) => r.id === "load-error:checks/no-scope.yaml");
+      expect(loadError).toBeDefined();
+      expect(loadError!.violations[0].message).toContain("scope");
+    });
+
+    it("rejects rule with no check type defined", async () => {
+      const repo = createMockRepo({
+        "checks/empty-rule.yaml": "id: empty-rule\nseverity: error\nscope: state/*.yaml\n",
+      });
+      const summary = await runChecks({ repo });
+      const loadError = summary.results.find((r) => r.id === "load-error:checks/empty-rule.yaml");
+      expect(loadError).toBeDefined();
+      expect(loadError!.violations.some((v) => v.message.includes("require_fields"))).toBe(true);
+    });
+
+    it("rejects rule with invalid severity", async () => {
+      const repo = createMockRepo({
+        "checks/bad-sev.yaml": "id: bad-sev\nseverity: critical\nscope: state/*.yaml\nrequire_fields: [id]\n",
+      });
+      const summary = await runChecks({ repo });
+      const loadError = summary.results.find((r) => r.id === "load-error:checks/bad-sev.yaml");
+      expect(loadError).toBeDefined();
+      expect(loadError!.violations.some((v) => v.message.includes("critical"))).toBe(true);
+    });
+
+    it("runs custom each_entry rule", async () => {
+      const repo = createMockRepo({
+        "checks/entry-check.yaml": [
+          "id: entry-check",
+          "severity: error",
+          "scope: state/pipeline.yaml",
+          "each_entry:",
+          "  require_fields: [id, owner, status]",
+        ].join("\n"),
+        "state/pipeline.yaml": "items:\n  - id: p1\n    owner: alice\n",
+      });
+      const summary = await runChecks({ repo, filterId: "entry-check" });
+      expect(summary.results).toHaveLength(1);
+      expect(summary.results[0].status).toBe("fail");
+      expect(summary.results[0].violations[0].message).toContain("status");
+    });
+  });
+
+  describe("listChecks", () => {
+    it("lists all builtin checks with source=builtin", async () => {
+      const repo = createMockRepo({});
+      const entries = await listChecks({ repo });
+      expect(entries.length).toBe(8);
+      expect(entries.every((e) => e.source === "builtin")).toBe(true);
+      expect(entries.every((e) => e.id && e.severity && e.scope)).toBe(true);
+    });
+
+    it("includes custom checks with source=custom", async () => {
+      const repo = createMockRepo({
+        "checks/my-rule.yaml": [
+          "id: my-rule",
+          "description: Custom rule",
+          "severity: warning",
+          "scope: state/*.yaml",
+          "require_fields: [id]",
+        ].join("\n"),
+      });
+      const entries = await listChecks({ repo });
+      const custom = entries.find((e) => e.id === "my-rule");
+      expect(custom).toBeDefined();
+      expect(custom!.source).toBe("custom");
+      expect(custom!.description).toBe("Custom rule");
+    });
+
+    it("marks overridden builtins as custom", async () => {
+      const repo = createMockRepo({
+        "checks/work-queue-integrity.yaml": [
+          "id: work-queue-integrity",
+          "severity: warning",
+          "scope: meta/work-queue.yaml",
+          "require_fields: [items]",
+        ].join("\n"),
+      });
+      const entries = await listChecks({ repo });
+      const wq = entries.find((e) => e.id === "work-queue-integrity");
+      expect(wq).toBeDefined();
+      expect(wq!.source).toBe("custom");
+      expect(wq!.severity).toBe("warning");
     });
   });
 

@@ -85,6 +85,7 @@
     "tools": {
       "type": "object",
       "properties": {
+        "profile": { "enum": ["safe", "standard", "elevated"] },
         "allowed": { "type": "array", "items": { "type": "string" } },
         "forbidden": { "type": "array", "items": { "type": "string" } }
       }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AgentContract } from "../src/compiler/agent";
 import { compileAgent } from "../src/compiler/agent";
 import { createSchemaValidator } from "../src/lib/schema";
+import { preflightAgents } from "../src/lib/sync-preflight";
 import agentSchema from "../src/schemas/agent.schema.json";
 
 const MINIMAL_CONTRACT: AgentContract = {
@@ -162,5 +163,42 @@ describe("agent schema validation", () => {
     };
     const errors = validator.validate(agentSchema as object, withTools);
     expect(errors).toHaveLength(0);
+  });
+});
+
+describe("sync preflight", () => {
+  it("fails with missing agent IDs and prints snippet", async () => {
+    const logs: string[] = [];
+    const client = {
+      request: async () => ({ agents: [{ id: "codex" }] }),
+    };
+
+    const ok = await preflightAgents(client, [
+      { id: "codex" } as AgentContract,
+      { id: "claude" } as AgentContract,
+    ], {
+      error: (line) => logs.push(line),
+    });
+
+    expect(ok).toBe(false);
+    const output = logs.join("\n");
+    expect(output).toContain("Missing agent IDs");
+    expect(output).toContain("claude");
+    expect(output).toContain("\"agents\"");
+  });
+
+  it("passes when all agent IDs exist", async () => {
+    const client = {
+      request: async () => ({ agents: [{ id: "codex" }, { id: "claude" }] }),
+    };
+
+    const ok = await preflightAgents(client, [
+      { id: "codex" } as AgentContract,
+      { id: "claude" } as AgentContract,
+    ], {
+      error: () => {},
+    });
+
+    expect(ok).toBe(true);
   });
 });

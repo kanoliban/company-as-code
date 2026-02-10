@@ -2,21 +2,21 @@ items:
   - id: gateway-untested
     title: Sync command untested against live OpenClaw gateway
     owner: claude
-    status: active
+    status: mitigated
     as_of: 2026-02-09
     review_by: 2026-02-16
-    summary: compile-only mode works but gateway sync path is unverified
+    summary: Synced 4 agents to local OpenClaw gateway without errors
     severity: medium
     likelihood: medium
-    mitigation: Set up local OpenClaw instance and run integration test
+    mitigation: Validated gateway sync against ws://127.0.0.1:18789 using token auth
 
   - id: single-agent-contract
     title: Only one example agent contract exists
     owner: codex
-    status: active
+    status: mitigated
     as_of: 2026-02-09
     review_by: 2026-02-16
-    summary: Need real agent contracts to validate schema completeness
+    summary: 3 real agents defined (codex, claude, ops) + example retained
     severity: low
     likelihood: low
-    mitigation: Define 2-3 real agents during dogfooding phase
+    mitigation: Defined codex, claude, ops agents; all compile and pass checks

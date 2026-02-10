@@ -3,9 +3,10 @@ import { randomUUID } from "node:crypto";
 import WebSocket from "ws";
 
 interface GatewayResponse {
-  type?: string;
+  type?: "res" | "event";
   id?: string;
-  result?: unknown;
+  ok?: boolean;
+  payload?: unknown;
   error?: { message?: string; code?: string };
 }
 
@@ -22,13 +23,15 @@ export interface GatewayClient {
 
 export interface GatewayConnectOptions {
   token?: string;
-  clientId?: string;
+  clientId?: "cli" | "test" | "webchat-ui" | "openclaw-control-ui" | "webchat" | "gateway-client" | "openclaw-macos" | "openclaw-ios" | "openclaw-android" | "node-host" | "fingerprint" | "openclaw-probe";
   clientVersion?: string;
+  clientMode?: "cli" | "node" | "test" | "webchat" | "ui" | "backend" | "probe";
   role?: string;
   scopes?: string[];
+  userAgent?: string;
 }
 
-const DEFAULT_SCOPES = ["operator.read", "operator.write"];
+const DEFAULT_SCOPES = ["operator.admin", "operator.approvals", "operator.pairing"];
 
 export const createGatewayClient = async (url: string, options?: GatewayConnectOptions): Promise<GatewayClient> => {
   const ws = new WebSocket(url);
@@ -47,18 +50,18 @@ export const createGatewayClient = async (url: string, options?: GatewayConnectO
       return;
     }
 
-    if (!parsed || !parsed.id) return;
+    if (!parsed || !parsed.id || parsed.type !== "res") return;
     const item = pending.get(parsed.id);
     if (!item) return;
     pending.delete(parsed.id);
     clearTimeout(item.timeout);
 
-    if (parsed.error) {
-      item.reject(new Error(parsed.error.message ?? "Gateway request failed"));
+    if (parsed.ok === false) {
+      item.reject(new Error(parsed.error?.message ?? "Gateway request failed"));
       return;
     }
 
-    item.resolve(parsed.result);
+    item.resolve(parsed.payload);
   });
 
   ws.on("close", () => {
@@ -96,14 +99,15 @@ export const createGatewayClient = async (url: string, options?: GatewayConnectO
     minProtocol: 3,
     maxProtocol: 3,
     client: {
-      id: options?.clientId ?? "company-as-code",
+      id: options?.clientId ?? "cli",
       version: options?.clientVersion ?? "0.1.0",
       platform: process.platform,
-      mode: "operator",
+      mode: options?.clientMode ?? "cli",
     },
     role: options?.role ?? "operator",
     scopes: options?.scopes ?? DEFAULT_SCOPES,
     auth: options?.token ? { token: options.token } : undefined,
+    userAgent: options?.userAgent ?? `company-as-code/${options?.clientVersion ?? "0.1.0"}`,
   };
 
   await request("connect", connectParams);

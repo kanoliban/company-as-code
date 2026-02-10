@@ -79,11 +79,11 @@ items:
   - id: implement-init
     title: "Build: company init CLI command"
     owner: codex
-    status: in_progress
+    status: done
     depends_on: [schema-v0, cli-v0]
     deliverables:
       - src/commands/init.ts
-    next_action: Scaffold repo layout + sample files per schema-v0
+    next_action: Tests added; awaiting Claude review (see discussion/039-codex-response.md)
     review_by: claude
 
   - id: implement-view
@@ -99,20 +99,424 @@ items:
 
   - id: gateway-integration
     title: "Test: company sync against live OpenClaw gateway"
-    owner: TBD
-    status: ready
+    owner: codex
+    status: done
     depends_on: [implement-sync]
     deliverables:
       - reports/gateway-test.md
-    next_action: Run sync against local OpenClaw and capture results
-    review_by: TBD
+    next_action: Ready for Claude review (see discussion/042-codex-response.md)
+    review_by: claude
 
   - id: real-agents
     title: "Dogfood: replace example agent with real roles"
-    owner: TBD
-    status: ready
+    owner: claude
+    status: done
     depends_on: [implement-sync]
     deliverables:
+      - agents/codex.yaml
+      - agents/claude.yaml
+      - agents/ops.yaml
+    next_action: Awaiting Codex review (see discussion/041-claude-response.md)
+    review_by: codex
+
+  - id: autonomy-level-2
+    title: "Build: Autonomy Level 2 relay flow"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - meta/collaboration.yaml
+      - meta/shuttle.sh
+    next_action: Reviewed by Claude (see discussion/052-claude-response.md)
+    review_by: claude
+
+  - id: custom-checks
+    title: "Build: Custom YAML checks"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/checks/runner.ts
+      - src/lib/sync-preflight.ts
+      - tests/check.test.ts
+      - checks/discussion-protocol.yaml
+    next_action: Reviewed by Codex (see discussion/053-codex-response.md)
+    review_by: codex
+
+  - id: sync-preflight-test
+    title: "Test: sync preflight behavior"
+    owner: codex
+    status: done
+    depends_on: [implement-sync]
+    deliverables:
+      - tests/sync.test.ts
+    next_action: Reviewed by Claude (see discussion/052-claude-response.md)
+    review_by: claude
+
+  - id: autonomy-level-3
+    title: "Build: Autonomy Level 3 relay"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - meta/collaboration.yaml
+      - meta/shuttle.sh
+      - src/commands/handoff.ts
+    next_action: "Reviewed by Claude; grep fix applied (see discussion/067-codex-response.md)"
+    review_by: claude
+
+  - id: safety-gates
+    title: "Build: Safety gates for autonomy"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - meta/collaboration.yaml
+      - src/schemas/agent.schema.json
+      - src/compiler/agent.ts
       - agents/*.yaml
-    next_action: Define real agents with missions + outputs
-    review_by: TBD
+    next_action: "Approved (see discussion/060-claude-response.md)"
+    review_by: claude
+
+  - id: handoff-protocol
+    title: "Design: Handoff protocol schema"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - design/handoff-protocol-v0.md
+      - discussion/063-claude-response.md
+    next_action: "Reviewed by Codex; wiring complete (see discussion/064-codex-response.md)"
+    review_by: codex
+
+  # --- v0.4 ---
+
+  - id: frontmatter-normalization
+    title: "Build: Normalize from/to IDs in shuttle output"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - meta/shuttle.sh
+    next_action: "Reviewed by Claude (see discussion/075-claude-response.md)"
+    review_by: claude
+
+  - id: handoff-history
+    title: "Build: Append-only handoff history log"
+    owner: claude
+    status: done
+    depends_on: [frontmatter-normalization]
+    deliverables:
+      - src/lib/handoff.ts
+      - src/commands/handoff.ts
+      - tests/handoff.test.ts
+    next_action: "Reviewed by Codex (see discussion/076-codex-response.md)"
+    review_by: codex
+
+  - id: company-status
+    title: "Build: company status dashboard command"
+    owner: codex
+    status: done
+    depends_on: [handoff-history]
+    deliverables:
+      - src/commands/status.ts
+    next_action: "Reviewed by Claude (see discussion/078-claude-response.md)"
+    review_by: claude
+
+  # --- v0.5 ---
+
+  - id: readme-commands
+    title: "Docs: Add command reference to README"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/087-claude-response.md)"
+    review_by: claude
+
+  - id: company-receive
+    title: "Build: company receive command"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/receive.ts
+      - src/cli.ts
+      - tests/receive.test.ts
+    next_action: "Reviewed by Claude (see discussion/087-claude-response.md)"
+    review_by: claude
+
+  - id: receive-log-integration
+    title: "Build: Log 'received' status on company receive"
+    owner: claude
+    status: done
+    depends_on: [company-receive]
+    deliverables:
+      - src/commands/receive.ts
+      - tests/receive.test.ts
+    next_action: "Reviewed by Codex (see discussion/088-codex-response.md)"
+    review_by: codex
+
+  - id: check-watch
+    title: "Build: company check --watch"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/check.ts
+    next_action: "Reviewed by Codex (see discussion/085-codex-response.md)"
+    review_by: codex
+
+  # --- v0.6 ---
+
+  - id: shuttle-receive
+    title: "Build: Wire company receive into shuttle flow"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - meta/shuttle.sh
+    next_action: "Reviewed by Claude (see discussion/096-claude-response.md)"
+    review_by: claude
+
+  - id: company-log
+    title: "Build: company log command"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/log.ts
+      - src/cli.ts
+      - tests/log.test.ts
+    next_action: "Reviewed by Codex (see discussion/094-codex-response.md)"
+    review_by: codex
+
+  - id: end-to-end-test
+    title: "Test: Full-cycle integration test"
+    owner: codex
+    status: done
+    depends_on: [shuttle-receive, company-log]
+    deliverables:
+      - tests/e2e.test.ts
+    next_action: "Reviewed by Claude (see discussion/096-claude-response.md)"
+    review_by: codex
+
+  # --- v0.7 ---
+
+  - id: company-diff
+    title: "Build: company diff command"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/diff.ts
+      - src/cli.ts
+      - tests/diff.test.ts
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/102-claude-response.md)"
+    review_by: claude
+
+  - id: ci-integration
+    title: "Build: GitHub Actions CI workflow"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - .github/workflows/company-ci.yml
+      - scripts/ci.sh
+    next_action: "Reviewed by Codex (see discussion/100-codex-response.md)"
+    review_by: codex
+
+  # --- v0.8 ---
+
+  - id: semantic-diff
+    title: "Build: company diff --semantic mode"
+    owner: codex
+    status: done
+    depends_on: [company-diff]
+    deliverables:
+      - src/commands/diff.ts
+      - tests/diff.test.ts
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/107-claude-response.md)"
+    review_by: claude
+
+  - id: company-validate
+    title: "Build: company validate command"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/validate.ts
+      - src/cli.ts
+      - tests/validate.test.ts
+    next_action: "Reviewed by Codex (see discussion/105-codex-response.md)"
+    review_by: codex
+
+  # --- v0.9 ---
+
+  - id: simulation-lite
+    title: "Build: company simulate command"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/simulate.ts
+      - src/cli.ts
+      - tests/simulate.test.ts
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/113-claude-response.md)"
+    review_by: claude
+
+  # --- v1.0 ---
+
+  - id: company-normalize
+    title: "Build: company normalize command"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/normalize.ts
+      - src/cli.ts
+      - tests/normalize.test.ts
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/119-claude-response.md)"
+    review_by: claude
+
+  - id: company-doctor
+    title: "Build: company doctor command"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/doctor.ts
+      - src/cli.ts
+      - tests/doctor.test.ts
+    next_action: "Reviewed by Codex (see discussion/117-codex-response.md)"
+    review_by: codex
+
+  # --- v1.1 ---
+
+  - id: package-npm
+    title: "Release: npm publish packaging"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - package.json
+      - README.md
+      - LICENSE
+    next_action: "Published: company-as-code@1.0.0 on npm (see discussion/130-claude-response.md)"
+    review_by: claude
+
+  # --- v1.2 ---
+
+  - id: polish-hardening
+    title: "Polish: Standardize error handling, help text, and edge-case tests"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/*.ts
+      - tests/*.test.ts
+    next_action: "Reviewed by Claude (see discussion/136-claude-response.md)"
+    review_by: claude
+
+  - id: docs-reference
+    title: "Docs: CLI reference, workflow guide, and FAQ"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - docs/cli.md
+      - docs/workflow.md
+      - docs/faq.md
+    next_action: "Reviewed by Codex (see discussion/137-codex-response.md)"
+    review_by: codex
+
+  # --- v1.3 ---
+
+  - id: plugin-system
+    title: "Build: local plugin system (list/run)"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/plugin.ts
+      - src/cli.ts
+      - tests/plugin.test.ts
+      - docs/cli.md
+      - README.md
+    next_action: "Reviewed by Claude (see discussion/145-claude-response.md)"
+    review_by: claude
+
+  # --- v1.4 ---
+
+  - id: validate-plugins
+    title: "Build: Extend company validate to check plugin manifests"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/validate.ts
+      - tests/validate.test.ts
+    next_action: "Reviewed by Claude (see discussion/149-codex-response.md)"
+    review_by: claude
+
+  - id: plugin-init
+    title: "Build: company plugin init scaffolding command"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/plugin.ts
+      - tests/plugin.test.ts
+    next_action: "Reviewed by Claude (see discussion/149-codex-response.md)"
+    review_by: claude
+
+  - id: plugin-docs
+    title: "Docs: Plugin guide (manifest, safety, examples)"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - docs/plugins.md
+    next_action: "Reviewed by Codex (see discussion/149-codex-response.md)"
+    review_by: codex
+
+  # --- v1.5 ---
+
+  - id: validate-sections
+    title: "Build: company validate --section flag"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/validate.ts
+      - tests/validate.test.ts
+    next_action: "Approved by Claude (see discussion/158-claude-response.md)"
+    review_by: claude
+
+  - id: check-list
+    title: "Build: company check --list to enumerate rules"
+    owner: claude
+    status: done
+    depends_on: []
+    deliverables:
+      - src/checks/runner.ts
+      - src/commands/check.ts
+      - tests/check.test.ts
+    next_action: "Reviewed by Codex (see discussion/159-codex-response.md)"
+    review_by: codex
+
+  - id: plugin-run-dry
+    title: "Build: company plugin run --dry-run"
+    owner: codex
+    status: done
+    depends_on: []
+    deliverables:
+      - src/commands/plugin.ts
+      - tests/plugin.test.ts
+    next_action: "Approved by Claude (see discussion/158-claude-response.md)"
+    review_by: claude

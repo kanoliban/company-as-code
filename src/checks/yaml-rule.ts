@@ -19,6 +19,30 @@ export interface YamlRule {
   };
 }
 
+const getFieldValue = (record: Record<string, unknown>, path: string): unknown => {
+  const parts = path.split(".");
+  let current: unknown = record;
+  for (const part of parts) {
+    if (typeof current !== "object" || current === null) return undefined;
+    const obj = current as Record<string, unknown>;
+    if (!(part in obj)) return undefined;
+    current = obj[part];
+  }
+  return current;
+};
+
+const hasFieldPath = (record: Record<string, unknown>, path: string): boolean => {
+  const parts = path.split(".");
+  let current: unknown = record;
+  for (const part of parts) {
+    if (typeof current !== "object" || current === null) return false;
+    const obj = current as Record<string, unknown>;
+    if (!(part in obj)) return false;
+    current = obj[part];
+  }
+  return true;
+};
+
 function evaluateCondition(value: unknown, condition: string): boolean {
   if (condition === "not_empty") {
     if (value === null || value === undefined) return false;
@@ -111,7 +135,7 @@ async function checkTopLevelFields(
       violations.push({ file, message: "file is not a YAML object" });
       return;
     }
-    const missing = requiredKeys.filter((key) => !(key in data));
+    const missing = requiredKeys.filter((key) => !hasFieldPath(data, key));
     if (missing.length > 0) {
       violations.push({
         file,
@@ -149,7 +173,7 @@ async function checkEachEntry(
       const entryId = (record.id as string) || `[${i}]`;
 
       if (entrySpec.require_fields) {
-        const missing = entrySpec.require_fields.filter((key) => !(key in record));
+        const missing = entrySpec.require_fields.filter((key) => !hasFieldPath(record, key));
         if (missing.length > 0) {
           violations.push({
             file,
@@ -160,7 +184,7 @@ async function checkEachEntry(
 
       if (entrySpec.assert) {
         for (const assertion of entrySpec.assert) {
-          const value = record[assertion.field];
+          const value = getFieldValue(record, assertion.field);
           if (!evaluateCondition(value, assertion.condition)) {
             violations.push({
               file,

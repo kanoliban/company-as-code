@@ -25,6 +25,7 @@ export interface CheckContext {
   filterId?: string;
   filterSeverity?: CheckSeverity;
   filterScope?: string;
+  _loadErrors?: CheckResult[];
 }
 
 export interface CheckSummary {
@@ -34,9 +35,55 @@ export interface CheckSummary {
   results: CheckResult[];
 }
 
+export interface CheckListEntry {
+  id: string;
+  severity: CheckSeverity;
+  scope: string;
+  source: "builtin" | "custom";
+  description: string;
+}
+
+export async function listChecks(context: CheckContext): Promise<CheckListEntry[]> {
+  const builtinRules = getBuiltinRules();
+  const builtinIds = new Set(builtinRules.map((r) => r.id));
+  const builtinMap = new Map(builtinRules.map((r) => [r.id, r]));
+
+  const userCheckFiles = await context.repo.glob("checks/*.yaml");
+  const userRules: YamlRule[] = [];
+
+  for (const file of userCheckFiles) {
+    try {
+      const text = await context.repo.readText(file);
+      const parsed = parseYaml(text) as Record<string, unknown>;
+      const errors = validateUserRule(parsed, file);
+      if (errors.length > 0) continue;
+      const rule = parsed as unknown as YamlRule;
+      userRules.push(rule);
+      if (builtinMap.has(rule.id)) builtinMap.delete(rule.id);
+    } catch {
+      continue;
+    }
+  }
+
+  const allRules = [...builtinMap.values(), ...userRules];
+  const filtered = filterRules(allRules, context);
+
+  return filtered.map((r) => ({
+    id: r.id,
+    severity: r.severity,
+    scope: r.scope,
+    source: builtinIds.has(r.id) && !userRules.some((u) => u.id === r.id) ? "builtin" as const : "custom" as const,
+    description: r.description ?? "",
+  }));
+}
+
 export async function runChecks(context: CheckContext): Promise<CheckSummary> {
   const rules = await discoverRules(context);
   const results: CheckResult[] = [];
+
+  if (context._loadErrors) {
+    results.push(...context._loadErrors);
+  }
 
   for (const rule of rules) {
     const result = await runYamlRule(context.repo, rule);
@@ -51,19 +98,67 @@ export async function runChecks(context: CheckContext): Promise<CheckSummary> {
 }
 
 async function discoverRules(context: CheckContext): Promise<YamlRule[]> {
-  const rules: YamlRule[] = [];
-
   const builtinRules = getBuiltinRules();
-  rules.push(...builtinRules);
+  const builtinMap = new Map(builtinRules.map((r) => [r.id, r]));
 
   const userCheckFiles = await context.repo.glob("checks/*.yaml");
+  const userRules: YamlRule[] = [];
+  const loadErrors: CheckResult[] = [];
+
   for (const file of userCheckFiles) {
-    const text = await context.repo.readText(file);
-    const rule = parseYaml(text) as YamlRule;
-    rules.push(rule);
+    try {
+      const text = await context.repo.readText(file);
+      const parsed = parseYaml(text) as Record<string, unknown>;
+      const errors = validateUserRule(parsed, file);
+      if (errors.length > 0) {
+        loadErrors.push({
+          id: `load-error:${file}`,
+          severity: "error",
+          status: "fail",
+          violations: errors,
+        });
+        continue;
+      }
+      const rule = parsed as unknown as YamlRule;
+      userRules.push(rule);
+      if (builtinMap.has(rule.id)) {
+        builtinMap.delete(rule.id);
+      }
+    } catch (err) {
+      loadErrors.push({
+        id: `load-error:${file}`,
+        severity: "error",
+        status: "fail",
+        violations: [{ file, message: `failed to load: ${err instanceof Error ? err.message : String(err)}` }],
+      });
+    }
   }
 
+  context._loadErrors = loadErrors;
+  const rules = [...builtinMap.values(), ...userRules];
   return filterRules(rules, context);
+}
+
+function validateUserRule(parsed: Record<string, unknown>, file: string): CheckViolation[] {
+  const violations: CheckViolation[] = [];
+  if (typeof parsed !== "object" || parsed === null) {
+    violations.push({ file, message: "rule file must be a YAML object" });
+    return violations;
+  }
+  const missing: string[] = [];
+  if (!parsed.id || typeof parsed.id !== "string") missing.push("id");
+  if (!parsed.severity || typeof parsed.severity !== "string") missing.push("severity");
+  if (!parsed.scope || typeof parsed.scope !== "string") missing.push("scope");
+  if (missing.length > 0) {
+    violations.push({ file, message: `missing required rule fields: ${missing.join(", ")}` });
+  }
+  if (parsed.severity && !["error", "warning", "info"].includes(parsed.severity as string)) {
+    violations.push({ file, message: `invalid severity "${parsed.severity}" (must be error|warning|info)` });
+  }
+  if (!parsed.require_fields && !parsed.require_frontmatter && !parsed.each_entry) {
+    violations.push({ file, message: "rule must define at least one of: require_fields, require_frontmatter, each_entry" });
+  }
+  return violations;
 }
 
 function getBuiltinRules(): YamlRule[] {
@@ -91,6 +186,13 @@ function getBuiltinRules(): YamlRule[] {
       severity: "error",
       scope: "agents/*.yaml",
       require_fields: ["id", "name", "mission", "inputs", "outputs", "writes", "forbidden", "escalation", "heartbeat"],
+    },
+    {
+      id: "agent-tool-profiles",
+      description: "Every agent contract must declare a tool profile",
+      severity: "error",
+      scope: "agents/*.yaml",
+      require_fields: ["tools.profile"],
     },
     {
       id: "canon-has-review-dates",

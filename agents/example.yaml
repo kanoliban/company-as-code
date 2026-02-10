@@ -60,6 +60,7 @@ model:
   thinking: medium
 
 tools:
+  profile: standard
   allowed:
     - shell_readonly
     - file_read

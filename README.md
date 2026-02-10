@@ -33,6 +33,60 @@ company-as-code/
 └── repos.md                          # External repo references
 ```
 
+## Setup
+
+- `pnpm install && pnpm build`
+- Install OpenClaw and start the gateway (see the OpenClaw repo).
+- Add agent IDs to `~/.openclaw/openclaw.json` under `agents.list`:
+
+```json
+{
+  "agents": {
+    "list": [
+      { "id": "codex", "default": true },
+      { "id": "claude" },
+      { "id": "ops" },
+      { "id": "example" }
+    ]
+  }
+}
+```
+
+- Export the gateway token: `export OPENCLAW_GATEWAY_TOKEN=...`
+- Run `node dist/cli.js sync` to verify.
+
+## Install
+
+- Global install: `npm i -g company-as-code`
+- One-off run: `npx company-as-code --help`
+
+Requires Node 22+.
+
+## Commands
+
+- `node dist/cli.js init` — scaffold a repo with Company-as-Code structure
+- `node dist/cli.js check` — run organizational tests
+- `node dist/cli.js check --watch` — re-run checks on file changes
+- `node dist/cli.js validate` — structural validation of core repo files
+- `node dist/cli.js diff` — compare repo changes between git refs
+- `node dist/cli.js diff --semantic` — summarize YAML changes by item id
+- `node dist/cli.js normalize` — backfill discussion frontmatter
+- `node dist/cli.js plugin list|run|init` — manage local plugins
+- `node dist/cli.js view` — render objectives, risks, pipeline, and work queue
+- `node dist/cli.js status` — show handoff log, work queue, and check summary
+- `node dist/cli.js log` — show handoff history (pretty table or JSON)
+- `node dist/cli.js sync` — compile/sync agent contracts (`--compile-only` for offline)
+- `node dist/cli.js handoff` — generate a relay prompt (`--send` to deliver)
+- `node dist/cli.js receive` — create a response stub (`--format json` for agent runtimes)
+- `node dist/cli.js simulate` — dry-run handoff/receive and write reports/simulation.json
+- `node dist/cli.js doctor` — diagnose repo health (validate + check + compile + env)
+
+## Handoff (Level 3)
+
+- Preview handoff prompt (default): `node dist/cli.js handoff`
+- Send relay via OpenClaw: `node dist/cli.js handoff --send`
+- Skip auto-branch creation: `node dist/cli.js handoff --no-branch`
+
 ## Repos Under Discussion
 
 | Repo | Role | URL |

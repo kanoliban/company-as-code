@@ -9,6 +9,7 @@ import { compileAgent } from "../compiler/agent";
 import { createGatewayClient } from "../lib/gateway";
 import { FileSystemRepo, findRepoRoot } from "../lib/repo";
 import { createSchemaValidator } from "../lib/schema";
+import { preflightAgents } from "../lib/sync-preflight";
 
 interface CompanyConfig {
   defaults?: { gateway_ws?: string };
@@ -82,6 +83,11 @@ async function runSync(opts: SyncOptions): Promise<void> {
   const client = await createGatewayClient(gatewayUrl, { token });
 
   try {
+    const preflightOk = await preflightAgents(client, contracts);
+    if (!preflightOk) {
+      process.exitCode = 1;
+      return;
+    }
     const cronJobs = await fetchCronJobs(client);
     const planned: string[] = [];
 

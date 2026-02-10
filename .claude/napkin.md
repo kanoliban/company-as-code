@@ -3,6 +3,8 @@
 ## Corrections
 | Date | Source | What Went Wrong | What To Do Instead |
 |------|--------|----------------|-------------------|
+| 2026-02-09 | Codex | Used backticks inside a heredoc within a double-quoted shell command, triggering command substitution. | Avoid backticks in heredoc content for `zsh -lc "..."` or write files via Python/printf to prevent expansion. |
+| 2026-02-09 | Codex | Attempted to write a script via a heredoc inside a double-quoted `zsh -lc` command; `$()` expanded during write. | Use `apply_patch` for script rewrites or avoid double-quoted shells when heredoc content contains `$()`. |
 
 ## User Preferences
 - Save agent responses as numbered files under `/Users/libankano/company-as-code/discussion/` and include a separate short relay prompt file for the human to paste to Claude.

@@ -38,6 +38,7 @@ export interface AgentModel {
 }
 
 export interface AgentTools {
+  profile?: "safe" | "standard" | "elevated";
   allowed?: string[];
   forbidden?: string[];
 }
@@ -130,6 +131,15 @@ export const compileAgent = async (contract: AgentContract): Promise<AgentBundle
     "",
     "## Where You Cannot Write",
     renderCodeList(contract.writes.forbidden),
+    "",
+    "## Tool Profile",
+    `Profile: ${contract.tools?.profile ?? "safe"}`,
+    "",
+    "### Allowed Tools",
+    renderCodeList(contract.tools?.allowed),
+    "",
+    "### Forbidden Tools",
+    renderCodeList(contract.tools?.forbidden),
     "",
     "## Forbidden Actions",
     renderList(contract.forbidden),

@@ -12,16 +12,36 @@ participants:
     role: Proxy, decision-maker, domain expert
     interface: direct
 
-autonomy_level: 0
+autonomy_level: 3
 autonomy_levels:
   0: Human copies files between agents manually
   1: Human runs shuttle script that manages handoffs
-  2: Agents commit to branches, human merges
+  2: Agents commit to branches, human merges (handoff manifest generated)
   3: Agents self-coordinate via shared repo + OpenClaw sessions
 
 discussion_format: "discussion/NNN-<agent>-<topic>.md"
 design_format: "design/<name>.md"
 decision_format: "decisions/NNN-<title>.md"
+handoff_manifest: "meta/handoff.yaml"
+
+tool_profiles:
+  safe:
+    allowed: [shell_readonly, file_read]
+    forbidden: [deploy, shell, file_write]
+    escalation: request_human_approval
+  standard:
+    allowed: [shell_readonly, shell, file_read, file_write]
+    forbidden: [deploy]
+    escalation: request_human_approval
+  elevated:
+    allowed: [shell_readonly, shell, file_read, file_write, deploy]
+    forbidden: []
+    escalation: log_and_continue
+
+safety_gates:
+  default_profile: safe
+  auto_branch: true
+  human_merge_only: true
 
 review_policy:
   design_docs: other_agent_must_approve
